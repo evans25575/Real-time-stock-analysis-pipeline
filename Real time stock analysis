@@ -1,0 +1,115 @@
+real-time-stock-analysis-pipeline/
+│
+├── README.md
+├── requirements.txt
+├── data/
+│   ├── sample_data.csv
+│   ├── processed_data.csv
+│
+├── src/
+│   ├── fetch_data.py
+│   ├── process_data.py
+│   ├── load_data.py
+│   ├── visualize_data.py
+│   ├── airflow_dag.py
+│
+├── dashboards/
+│   ├── tableau_dashboard.twb
+│   ├── power_bi_dashboard.pbix
+│
+├── scripts/
+│   ├── kafka_producer.py
+│   ├── kafka_consumer.py
+│
+├── config/
+│   ├── api_keys.json
+│   ├── db_config.yaml
+│
+└── docs/
+    ├── architecture_diagram.png
+    ├── dataset_description.md
+    └── presentation.pdf
+# Real-Time Stock Price Analysis Pipeline  
+This project demonstrates a scalable data engineering pipeline to fetch, process, and visualize real-time stock prices.  
+## Key Features  
+- Real-time data collection from stock APIs.  
+- Automated processing and storage in PostgreSQL.  
+- Interactive dashboards in Tableau and Power BI.  
+## Technologies  
+Python | Apache Kafka | PostgreSQL | Tableau | Google Cloud | Apache Airflow  
+## Getting Started  
+- Clone the repository: `git clone https://github.com/username/real-time-stock-analysis-pipeline.git`  
+- Install dependencies: `pip install -r requirements.txt`  
+pandas  
+requests  
+kafka-python  
+psycopg2  
+apache-airflow  
+import requests
+import json
+from datetime import datetime
+
+# API endpoint and key
+API_URL = "https://www.alphavantage.co/query"
+API_KEY = "your_api_key"
+
+def fetch_stock_data(symbol):
+    params = {
+        "function": "TIME_SERIES_INTRADAY",
+        "symbol": symbol,
+        "interval": "1min",
+        "apikey": API_KEY
+    }
+    response = requests.get(API_URL, params=params)
+    data = response.json()
+    return data["Time Series (1min)"]
+
+if __name__ == "__main__":
+    stock_symbol = "AAPL"
+    stock_data = fetch_stock_data(stock_symbol)
+    print(json.dumps(stock_data, indent=4))
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load processed data
+data = pd.read_csv('data/processed_data.csv')
+
+# Convert time column to datetime
+data['timestamp'] = pd.to_datetime(data['timestamp'])
+
+# Plot stock price trends
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=data, x='timestamp', y='close', label='Closing Price')
+sns.lineplot(data=data, x='timestamp', y='open', label='Opening Price')
+plt.title('Stock Price Trends Over Time')
+plt.xlabel('Time')
+plt.ylabel('Price (USD)')
+plt.legend()
+plt.grid(True)
+plt.show()
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.animation import FuncAnimation
+
+# Load real-time data
+def fetch_realtime_data():
+    return pd.read_csv('data/processed_data.csv')
+
+# Update graph
+def update(frame):
+    data = fetch_realtime_data()
+    plt.cla()
+    plt.plot(data['timestamp'], data['close'], label='Closing Price')
+    plt.plot(data['timestamp'], data['open'], label='Opening Price')
+    plt.xlabel('Time')
+    plt.ylabel('Price (USD)')
+    plt.title('Real-Time Stock Price Trends')
+    plt.legend()
+    plt.tight_layout()
+
+# Set up animation
+fig = plt.figure()
+ani = FuncAnimation(fig, update, interval=60000)  # Update every minute
+plt.show()
+
